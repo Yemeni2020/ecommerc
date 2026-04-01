@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { Heart, ShoppingCart, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,18 +5,14 @@ import { useWishlist } from "@/lib/wishlistContext";
 import { useCart } from "@/lib/cartContext";
 import Navbar from "../components/home/Navbar";
 import Footer from "../components/home/Footer";
-import { useState } from "react";
-import CartDrawer from "../components/product/CartDrawer";
 
 export default function Wishlist() {
   const { wishlist, toggleWishlist } = useWishlist();
-  const { addToCart, totalItems } = useCart();
-  const [cartOpen, setCartOpen] = useState(false);
+  const { addToCart } = useCart();
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar onCartClick={() => setCartOpen(true)} cartCount={totalItems} />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <Navbar />
 
       <main className="pt-24 pb-32 md:pb-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-8">

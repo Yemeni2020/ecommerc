@@ -1,7 +1,8 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect } from "react";
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/cartContext';
@@ -12,10 +13,16 @@ import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 import OrderTracking from './pages/OrderTracking';
+import CartDrawer from "@/components/product/CartDrawer";
+import BottomNavbar from "@/components/home/BottomNavbar";
+import SearchOverlay from "@/components/home/SearchOverlay";
+import { UIProvider, useUI } from "@/lib/uiContext";
 // Add page imports here
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
+  const { cartOpen, closeCart, searchOpen, closeSearch } = useUI();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -37,33 +44,43 @@ const AuthenticatedApp = () => {
     }
   }
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/product/:productId" element={<ProductDetail />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/track" element={<OrderTracking />} />
-      <Route path="/wishlist" element={<Wishlist />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:productId" element={<ProductDetail />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/track" element={<OrderTracking />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+      <CartDrawer open={cartOpen} onClose={closeCart} />
+      <SearchOverlay open={searchOpen} onClose={closeSearch} />
+      <BottomNavbar />
+    </>
   );
 };
-
 
 function App() {
 
   return (
     <AuthProvider>
       <WishlistProvider>
-      <CartProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </CartProvider>
+        <CartProvider>
+          <UIProvider>
+            <QueryClientProvider client={queryClientInstance}>
+              <Router>
+                <AuthenticatedApp />
+              </Router>
+              <Toaster />
+            </QueryClientProvider>
+          </UIProvider>
+        </CartProvider>
       </WishlistProvider>
     </AuthProvider>
   )

@@ -1,17 +1,18 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Heart, ShoppingCart, Search, MapPin } from "lucide-react";
 import { useCart } from "@/lib/cartContext";
 import { useWishlist } from "@/lib/wishlistContext";
+import { useUI } from "@/lib/uiContext";
 
-export default function BottomNavbar({ onCartClick, onSearchClick }) {
+export default function BottomNavbar() {
   const { totalItems } = useCart();
   const { wishlist } = useWishlist();
   const { pathname } = useLocation();
+  const { openCart, openSearch } = useUI();
 
   const links = [
     { icon: Home, label: "Home", to: "/" },
-    { icon: Search, label: "Search", action: onSearchClick },
+    { icon: Search, label: "Search", action: openSearch },
     { icon: Heart, label: "Wishlist", to: "/wishlist", badge: wishlist.length },
     { icon: MapPin, label: "Track", to: "/track" },
   ];
@@ -52,7 +53,7 @@ export default function BottomNavbar({ onCartClick, onSearchClick }) {
         })}
 
         {/* Cart button */}
-        <button onClick={onCartClick} className="flex-1 flex justify-center">
+            <button onClick={openCart} className="flex-1 flex justify-center">
           <div className="flex flex-col items-center gap-0.5 relative py-1 px-3 text-muted-foreground">
             <div className="relative">
               <ShoppingCart className="w-5 h-5" />

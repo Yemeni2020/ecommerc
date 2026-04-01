@@ -1,22 +1,16 @@
-import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import Navbar from "../components/home/Navbar";
 import Footer from "../components/home/Footer";
-import BottomNavbar from "../components/home/BottomNavbar";
 import ProductImageGallery from "../components/product/ProductImageGallery";
 import ProductInfo from "../components/product/ProductInfo";
 import ProductSpecs from "../components/product/ProductSpecs";
 import ProductReviews from "../components/product/ProductReviews";
 import RelatedProducts from "../components/product/RelatedProducts";
-import CartDrawer from "../components/product/CartDrawer";
 import { getProductById, getRelatedProducts } from "../lib/productData";
-import { useCart } from "@/lib/cartContext";
 
 export default function ProductDetail() {
   const { productId } = useParams();
-  const [cartOpen, setCartOpen] = useState(false);
-  const { totalItems } = useCart();
 
   const product = getProductById(productId);
   const related = product ? getRelatedProducts(product.id, product.category) : [];
@@ -24,7 +18,7 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar onCartClick={() => setCartOpen(true)} />
+        <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground">
           <p className="text-lg">Product not found.</p>
           <Link to="/" className="text-primary hover:underline text-sm">← Back to home</Link>
@@ -36,7 +30,7 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar onCartClick={() => setCartOpen(true)} cartCount={totalItems} />
+      <Navbar />
 
       <main className="pt-20 pb-10">
         {/* Breadcrumb */}
@@ -77,8 +71,6 @@ export default function ProductDetail() {
       <Footer />
 
       {/* Cart Drawer */}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-      <BottomNavbar onCartClick={() => setCartOpen(true)} onSearchClick={() => {}} />
     </div>
   );
 }
