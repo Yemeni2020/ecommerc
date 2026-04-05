@@ -1,4 +1,9 @@
+import React, { useState } from "react";
 import Navbar from "../components/home/Navbar";
+import CartDrawer from "../components/product/CartDrawer";
+import BottomNavbar from "../components/home/BottomNavbar";
+import SearchOverlay from "../components/home/SearchOverlay";
+import { useCart } from "@/lib/cartContext";
 import HeroSection from "../components/home/HeroSection";
 import CategoryGrid from "../components/home/CategoryGrid";
 import FeaturedProducts from "../components/home/FeaturedProducts";
@@ -6,6 +11,8 @@ import BrandsBar from "../components/home/BrandsBar";
 import WhyChooseUs from "../components/home/WhyChooseUs";
 import Newsletter from "../components/home/Newsletter";
 import Footer from "../components/home/Footer";
+import RecommendedSection from "../components/home/RecommendedSection";
+
 const HERO_IMAGE = "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/c651a0491_generated_c10d0264.png";
 
 const CATEGORIES = [
@@ -60,16 +67,24 @@ const PRODUCTS = [
 ];
 
 export default function Home() {
+  const [cartOpen, setCartOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const { totalItems } = useCart();
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar />
+      <Navbar onCartClick={() => setCartOpen(true)} cartCount={totalItems} onSearchOpen={() => setSearchOpen(true)} />
       <HeroSection heroImage={HERO_IMAGE} />
       <BrandsBar />
       <CategoryGrid categories={CATEGORIES} />
       <FeaturedProducts products={PRODUCTS} />
+      <RecommendedSection />
       <WhyChooseUs />
       <Newsletter />
       <Footer />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <BottomNavbar onCartClick={() => setCartOpen(true)} onSearchClick={() => setSearchOpen(true)} />
     </div>
   );
 }

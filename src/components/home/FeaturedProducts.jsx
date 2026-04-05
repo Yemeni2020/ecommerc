@@ -2,8 +2,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart, Star } from "lucide-react";
+import { ShoppingCart, Heart, Star, GitCompare } from "lucide-react";
 import { useWishlist } from "@/lib/wishlistContext";
+import { useCompare } from "@/lib/compareContext";
+import { useCart } from "@/lib/cartContext";
 
 const containerVariants = {
   hidden: {},
@@ -17,6 +19,8 @@ const itemVariants = {
 
 export default function FeaturedProducts({ products }) {
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { toggleCompare, isInCompare } = useCompare();
+  const { addToCart } = useCart();
   return (
     <section id="products" className="py-20 md:py-28 bg-secondary/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,8 +32,8 @@ export default function FeaturedProducts({ products }) {
               Best Sellers
             </h2>
           </div>
-          <Button variant="outline" className="rounded-full border-border/50 hover:bg-secondary w-fit">
-            View All Products
+          <Button variant="outline" asChild className="rounded-full border-border/50 hover:bg-secondary w-fit">
+            <Link to="/products">View All Products</Link>
           </Button>
         </div>
 
@@ -91,9 +95,18 @@ export default function FeaturedProducts({ products }) {
                       <span className="text-sm text-muted-foreground line-through">{product.oldPrice}</span>
                     )}
                   </div>
-                  <Button size="icon" className="w-9 h-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/80">
-                    <ShoppingCart className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => toggleCompare({ ...product, images: [product.image], reviewCount: product.reviews, specs: [], inStock: true })}
+                      title="Compare"
+                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${isInCompare(product.id) ? "bg-primary border-primary text-primary-foreground" : "border-border/50 text-muted-foreground hover:border-primary hover:text-primary"}`}
+                    >
+                      <GitCompare className="w-3.5 h-3.5" />
+                    </button>
+                    <Button size="icon" onClick={() => addToCart({ ...product, images: [product.image] }, 1)} className="w-9 h-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/80">
+                      <ShoppingCart className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </motion.div>
