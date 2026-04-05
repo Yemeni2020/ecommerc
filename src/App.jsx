@@ -63,12 +63,14 @@ function App() {
       <WishlistProvider>
       <CompareProvider>
       <CartProvider>
+        <UIProvider>
         <QueryClientProvider client={queryClientInstance}>
           <Router basename="/ecommerc">
             <AuthenticatedApp />
           </Router>
           <Toaster />
         </QueryClientProvider>
+        </UIProvider>
       </CartProvider>
       </CompareProvider>
       </WishlistProvider>

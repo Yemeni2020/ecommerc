@@ -8,9 +8,9 @@ import { useUI } from "@/lib/uiContext";
 import { useState } from "react";
 
 const navLinks = [
-  { label: "Home", href: "#" },
+  { label: "Home", href: "/" },
   { label: "Categories", href: "#categories" },
-  { label: "Products", href: "#products" },
+  { label: "Products", href: "/products" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
 ];
@@ -38,13 +38,23 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
-              >
-                {link.label}
-              </a>
+              link.href.startsWith('#') ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
           </div>
 
@@ -94,14 +104,25 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-3">
               {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
-                >
-                  {link.label}
-                </a>
+                link.href.startsWith('#') ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                )
               ))}
             </div>
           </motion.div>
