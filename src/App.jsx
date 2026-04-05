@@ -64,7 +64,7 @@ function App() {
       <CompareProvider>
       <CartProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <Router>
+          <Router basename="/ecommerc">
             <AuthenticatedApp />
           </Router>
           <Toaster />
