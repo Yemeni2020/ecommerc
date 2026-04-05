@@ -14,6 +14,7 @@ import { getProductById, getRelatedProducts } from "../lib/productData";
 import { useCart } from "@/lib/cartContext";
 import { recordView } from "../lib/browsingHistory";
 import { useEffect } from "react";
+import ChatWidget from "../components/chat/ChatWidget";
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -85,6 +86,7 @@ export default function ProductDetail() {
       {/* Cart Drawer */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       <BottomNavbar onCartClick={() => setCartOpen(true)} onSearchClick={() => {}} />
+      <ChatWidget />
     </div>
   );
 }

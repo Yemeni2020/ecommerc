@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, MapPin, CreditCard, Smartphone, Clock, Package } from "lucide-react";
+import { ArrowLeft, Check, MapPin, CreditCard, Smartphone, Clock, Package, Tag } from "lucide-react";
+import GiftCardInput from "./GiftCardInput";
+import { markPromoUsed } from "@/lib/promoStore";
 import { motion } from "framer-motion";
 
 const METHOD_LABELS = {
@@ -40,15 +42,20 @@ export default function ReviewStep({ shipping, payment, cart, onBack, onConfirm 
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [appliedCode, setAppliedCode] = useState(null);
+  const [codeType, setCodeType] = useState(null);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
   const shipping_fee = 0;
-  const total = subtotal + shipping_fee;
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const total = discountedSubtotal + shipping_fee;
 
   const PayIcon = METHOD_LABELS[payment.method]?.icon || CreditCard;
 
   const handleConfirm = () => {
     setLoading(true);
+    if (codeType === "promo" && appliedCode) markPromoUsed(appliedCode);
     setTimeout(() => {
       const num = "DL-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setOrderNumber(num);
@@ -111,16 +118,26 @@ export default function ReviewStep({ shipping, payment, cart, onBack, onConfirm 
         ))}
       </div>
 
+      {/* Gift Card / Promo Input */}
+      <div className="space-y-2">
+        <p className="text-sm font-semibold flex items-center gap-2"><Tag className="w-4 h-4 text-primary" /> Gift Card or Promo Code</p>
+        <GiftCardInput
+          subtotal={subtotal}
+          onDiscountChange={(amt, code, type) => { setDiscount(amt); setAppliedCode(code); setCodeType(type); }}
+        />
+      </div>
+
       {/* Totals */}
       <div className="rounded-2xl bg-secondary/30 border border-border/50 overflow-hidden">
         {[
           { label: "Subtotal", value: `${subtotal.toLocaleString()} SAR` },
+          ...(discount > 0 ? [{ label: "Discount", value: `−${discount.toLocaleString()} SAR`, highlight: true }] : []),
           { label: "Shipping", value: "Free" },
-          { label: "VAT (15%)", value: `${Math.round(subtotal * 0.15).toLocaleString()} SAR` },
+          { label: "VAT (15%)", value: `${Math.round(discountedSubtotal * 0.15).toLocaleString()} SAR` },
         ].map((row) => (
           <div key={row.label} className="flex justify-between items-center px-4 py-3 border-b border-border/30 text-sm">
             <span className="text-muted-foreground">{row.label}</span>
-            <span className="font-medium">{row.value}</span>
+            <span className={`font-medium ${row.highlight ? "text-green-400" : ""}`}>{row.value}</span>
           </div>
         ))}
         <div className="flex justify-between items-center px-4 py-4 text-base font-bold">

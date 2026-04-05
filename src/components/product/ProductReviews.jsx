@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, ThumbsUp, Image } from "lucide-react";
+import { Star, ThumbsUp, Image, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReviewForm from "../reviews/ReviewForm";
 
@@ -111,7 +111,12 @@ export default function ProductReviews({ reviews: initialReviews, rating, review
                   {review.avatar}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-foreground">{review.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-semibold text-sm text-foreground">{review.name}</p>
+                    {review.verified !== false && (
+                      <BadgeCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" title="Verified Purchase" />
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{review.date}</p>
                 </div>
               </div>

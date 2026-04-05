@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Package, Calendar, MapPin, ArrowLeft, Truck } from "lucide-react";
+import { Search, Package, Calendar, MapPin, ArrowLeft, Truck, Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import TrackingTimeline from "../components/tracking/TrackingTimeline";
@@ -27,7 +27,8 @@ const STATUS_COLORS = {
 };
 
 export default function OrderTracking() {
-  const [query, setQuery] = useState("");
+  const [orderNum, setOrderNum] = useState("");
+  const [phone, setPhone] = useState("");
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
@@ -35,14 +36,22 @@ export default function OrderTracking() {
   const handleSearch = (e) => {
     e.preventDefault();
     setSearched(true);
-    const result = lookupOrder(query);
-    if (result) {
-      setOrder(result);
-      setError("");
-    } else {
-      setOrder(null);
+    setError("");
+    setOrder(null);
+
+    const result = lookupOrder(orderNum, phone);
+    if (result.error === "not_found") {
       setError("No order found with that number. Please check and try again.");
+    } else if (result.error === "phone_mismatch") {
+      setError("Phone number doesn't match our records for this order. Please check and try again.");
+    } else {
+      setOrder(result.order);
     }
+  };
+
+  const tryDemo = (num, ph) => {
+    setOrderNum(num);
+    setPhone(ph);
   };
 
   return (
@@ -67,38 +76,49 @@ export default function OrderTracking() {
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-bold">Track Your Order</h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Enter your order number to see real-time shipping updates across Saudi Arabia.
+            Enter your order number and phone number to see real-time shipment updates.
           </p>
         </div>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-3 mb-2">
-          <div className="relative flex-1">
+        {/* Search Form */}
+        <form onSubmit={handleSearch} className="space-y-3 mb-3">
+          <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="e.g. DL-ORDER1 or DL-SAMPLE"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-11 h-12 rounded-full bg-card border-border/50 text-sm"
+              placeholder="Order number (e.g. DL-ORDER1)"
+              value={orderNum}
+              onChange={(e) => setOrderNum(e.target.value)}
+              className="pl-11 h-12 rounded-2xl bg-card border-border/50 text-sm"
             />
           </div>
-          <Button type="submit" className="h-12 px-6 rounded-full font-semibold">
-            Track
+          <div className="relative">
+            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Phone number used at checkout"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="pl-11 h-12 rounded-2xl bg-card border-border/50 text-sm"
+            />
+          </div>
+          <Button type="submit" disabled={!orderNum.trim()} className="w-full h-12 rounded-full font-semibold">
+            <Truck className="w-4 h-4 mr-2" /> Track Shipment
           </Button>
         </form>
-        <p className="text-xs text-muted-foreground text-center mb-8">
-          Try: <button className="text-primary hover:underline" onClick={() => setQuery("DL-ORDER1")}>DL-ORDER1</button>
-          {" "}or{" "}
-          <button className="text-primary hover:underline" onClick={() => setQuery("DL-SAMPLE")}>DL-SAMPLE</button>
-        </p>
+
+        <div className="text-xs text-muted-foreground text-center mb-8 space-y-1">
+          <p>Demo orders — click to prefill:</p>
+          <div className="flex flex-wrap justify-center gap-3 mt-1">
+            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-ORDER1", "+966 55 000 5500")}>DL-ORDER1 (In Transit)</button>
+            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-SAMPLE", "+966 55 001 5512")}>DL-SAMPLE (Packed)</button>
+            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-DELIVERED", "+966 55 005 5599")}>DL-DELIVERED (Done)</button>
+          </div>
+        </div>
 
         {/* Error */}
         <AnimatePresence>
           {searched && error && (
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center mb-6"
             >
               {error}
@@ -111,19 +131,13 @@ export default function OrderTracking() {
           {order && (
             <motion.div
               key={order.orderNumber}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4 }}
               className="space-y-5"
             >
               {/* Order Card */}
               <div className="bg-card border border-border/50 rounded-3xl p-5 sm:p-6 flex items-center gap-4">
-                <img
-                  src={order.image}
-                  alt={order.product}
-                  className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
-                />
+                <img src={order.image} alt={order.product} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground font-mono">{order.orderNumber}</p>
                   <p className="font-semibold text-sm mt-0.5 line-clamp-1">{order.product}</p>
@@ -134,13 +148,11 @@ export default function OrderTracking() {
                 </div>
                 <div className="text-right flex-shrink-0 hidden sm:block">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5 text-primary" />
-                    Est. Delivery
+                    <Calendar className="w-3.5 h-3.5 text-primary" /> Est. Delivery
                   </div>
                   <p className="font-bold text-sm mt-0.5">{order.estimatedDelivery}</p>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
-                    <MapPin className="w-3.5 h-3.5 text-primary" />
-                    {order.destination.name}
+                    <MapPin className="w-3.5 h-3.5 text-primary" /> {order.destination.name}
                   </div>
                 </div>
               </div>
@@ -148,15 +160,11 @@ export default function OrderTracking() {
               {/* Mobile delivery info */}
               <div className="flex gap-3 sm:hidden">
                 <div className="flex-1 bg-card border border-border/50 rounded-2xl p-4">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <Calendar className="w-3.5 h-3.5 text-primary" /> Est. Delivery
-                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1"><Calendar className="w-3.5 h-3.5 text-primary" /> Est. Delivery</div>
                   <p className="font-bold text-sm">{order.estimatedDelivery}</p>
                 </div>
                 <div className="flex-1 bg-card border border-border/50 rounded-2xl p-4">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <MapPin className="w-3.5 h-3.5 text-primary" /> Destination
-                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1"><MapPin className="w-3.5 h-3.5 text-primary" /> Destination</div>
                   <p className="font-bold text-sm">{order.destination.name}</p>
                 </div>
               </div>
@@ -170,12 +178,8 @@ export default function OrderTracking() {
                 <div className="px-5 pb-5">
                   <TrackingMap journey={order.journey} destination={order.destination} />
                   <div className="flex items-center gap-5 mt-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-primary rounded-full inline-block" /> Completed
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-0.5 bg-muted-foreground/40 border-dashed inline-block border-t-2" /> Remaining
-                    </span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-primary rounded-full inline-block" /> Completed</span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-muted-foreground/40 border-dashed inline-block border-t-2" /> Remaining</span>
                   </div>
                 </div>
               </div>

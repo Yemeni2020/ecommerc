@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Star, Upload, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function ReviewForm({ onSubmit }) {
+// verifiedPurchase: pass true if the user has purchased this product
+export default function ReviewForm({ onSubmit, verifiedPurchase = true }) {
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
@@ -23,7 +24,7 @@ export default function ReviewForm({ onSubmit }) {
     if (!rating || !comment.trim() || !name.trim()) return;
     setLoading(true);
     setTimeout(() => {
-      onSubmit({ name, rating, comment, photos: photos.map((p) => p.url), date: "Apr 2026", avatar: name[0].toUpperCase() });
+      onSubmit({ name, rating, comment, photos: photos.map((p) => p.url), date: "Apr 2026", avatar: name[0].toUpperCase(), verified: verifiedPurchase });
       setSubmitted(true);
       setLoading(false);
     }, 1000);
@@ -47,7 +48,14 @@ export default function ReviewForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-5 rounded-2xl bg-secondary/30 border border-border/50">
-      <h3 className="font-bold text-base">Write a Review</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-base">Write a Review</h3>
+        {verifiedPurchase && (
+          <span className="flex items-center gap-1 text-[10px] font-semibold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-1 rounded-full">
+            <Check className="w-3 h-3" /> Verified Purchase
+          </span>
+        )}
+      </div>
 
       {/* Star Rating */}
       <div>

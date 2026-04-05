@@ -3,7 +3,7 @@ import { MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const footerLinks = {
-  Shop: ["All Products", "Interior", "Exterior", "Performance", "Technology", "New Arrivals"],
+  Shop: ["All Products", "Interior", "Exterior", "Performance", "Technology", "New Arrivals", "Gift Cards"],
   Company: ["About Us", "Our Story", "Careers", "Press", "Blog"],
   Support: ["Contact Us", "FAQ", "Shipping Info", "Returns", "Warranty", "Installation", "Track Order"],
 };
@@ -15,7 +15,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <a href="/" className="flex items-center gap-2">
+            <a href="#" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">D</span>
               </div>
@@ -55,8 +55,12 @@ export default function Footer() {
                       <Link to="/track" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                         {link}
                       </Link>
+                    ) : link === "Gift Cards" ? (
+                      <Link to="/gift-card" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                        {link}
+                      </Link>
                     ) : (
-                      <a href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                         {link}
                       </a>
                     )}
@@ -73,10 +77,10 @@ export default function Footer() {
             © 2026 DriveLuxe. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <a href="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
               Privacy Policy
             </a>
-            <a href="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
               Terms of Service
             </a>
           </div>

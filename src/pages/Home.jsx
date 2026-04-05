@@ -12,6 +12,8 @@ import WhyChooseUs from "../components/home/WhyChooseUs";
 import Newsletter from "../components/home/Newsletter";
 import Footer from "../components/home/Footer";
 import RecommendedSection from "../components/home/RecommendedSection";
+import NewsletterPopup from "../components/home/NewsletterPopup";
+import ChatWidget from "../components/chat/ChatWidget";
 
 const HERO_IMAGE = "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/c651a0491_generated_c10d0264.png";
 
@@ -83,6 +85,8 @@ export default function Home() {
       <Newsletter />
       <Footer />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <NewsletterPopup />
+      <ChatWidget />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
       <BottomNavbar onCartClick={() => setCartOpen(true)} onSearchClick={() => setSearchOpen(true)} />
     </div>
