@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/cartContext';
 import { WishlistProvider } from '@/lib/wishlistContext';
 import { CompareProvider } from '@/lib/compareContext';
+import { UIProvider } from '@/lib/uiContext';
 import Wishlist from './pages/Wishlist';
 import Products from './pages/Products';
 import GiftCard from './pages/GiftCard';
