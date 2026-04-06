@@ -7,10 +7,14 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/cartContext';
 import { WishlistProvider } from '@/lib/wishlistContext';
 import { CompareProvider } from '@/lib/compareContext';
+import { CurrencyProvider } from '@/lib/currencyContext';
 import { UIProvider } from '@/lib/uiContext';
 import Wishlist from './pages/Wishlist';
 import Products from './pages/Products';
 import GiftCard from './pages/GiftCard';
+import AdminDashboard from './pages/AdminDashboard';
+import MyRewards from './pages/MyRewards';
+import ComparePage from './pages/ComparePage';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
@@ -51,6 +55,9 @@ const AuthenticatedApp = () => {
       <Route path="/wishlist" element={<Wishlist />} />
       <Route path="/products" element={<Products />} />
       <Route path="/gift-card" element={<GiftCard />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/rewards" element={<MyRewards />} />
+      <Route path="/compare" element={<ComparePage />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -61,20 +68,22 @@ function App() {
 
   return (
     <AuthProvider>
+      <CurrencyProvider>
       <WishlistProvider>
       <CompareProvider>
       <CartProvider>
         <UIProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router basename="/ecommerc">
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <Router basename={import.meta.env.BASE_URL}>
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </QueryClientProvider>
         </UIProvider>
       </CartProvider>
       </CompareProvider>
       </WishlistProvider>
+      </CurrencyProvider>
     </AuthProvider>
   )
 }

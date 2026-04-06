@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Star, Upload, X, Check } from "lucide-react";
+import { addReviewPoints } from "@/lib/rewardsStore";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -24,6 +25,7 @@ export default function ReviewForm({ onSubmit, verifiedPurchase = true }) {
     if (!rating || !comment.trim() || !name.trim()) return;
     setLoading(true);
     setTimeout(() => {
+      addReviewPoints();
       onSubmit({ name, rating, comment, photos: photos.map((p) => p.url), date: "Apr 2026", avatar: name[0].toUpperCase(), verified: verifiedPurchase });
       setSubmitted(true);
       setLoading(false);
@@ -41,7 +43,7 @@ export default function ReviewForm({ onSubmit, verifiedPurchase = true }) {
           <Check className="w-6 h-6 text-green-500" />
         </div>
         <p className="font-semibold text-foreground">Review submitted!</p>
-        <p className="text-sm text-muted-foreground">Thank you for sharing your experience.</p>
+        <p className="text-sm text-muted-foreground">Thank you! You earned <span className="text-primary font-semibold">+50 reward points</span> for this review.</p>
       </motion.div>
     );
   }

@@ -6,6 +6,7 @@ import { ShoppingCart, Heart, Star, GitCompare } from "lucide-react";
 import { useWishlist } from "@/lib/wishlistContext";
 import { useCompare } from "@/lib/compareContext";
 import { useCart } from "@/lib/cartContext";
+import { useCurrency } from "@/lib/currencyContext";
 
 const containerVariants = {
   hidden: {},
@@ -21,6 +22,7 @@ export default function FeaturedProducts({ products }) {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { toggleCompare, isInCompare } = useCompare();
   const { addToCart } = useCart();
+  const { format } = useCurrency();
   return (
     <section id="products" className="py-20 md:py-28 bg-secondary/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -90,9 +92,9 @@ export default function FeaturedProducts({ products }) {
 
                 <div className="flex items-center justify-between mt-4">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-foreground">{product.price} SAR</span>
+                    <span className="text-lg font-bold text-foreground">{format(product.price)}</span>
                     {product.oldPrice && (
-                      <span className="text-sm text-muted-foreground line-through">{product.oldPrice}</span>
+                      <span className="text-sm text-muted-foreground line-through">{format(product.oldPrice)}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">

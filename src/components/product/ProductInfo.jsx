@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart, Share2, Check, Truck, Shield, Star } from "lucide-react";
 import { useCart } from "@/lib/cartContext";
+import { useCurrency } from "@/lib/currencyContext";
 import { useWishlist } from "@/lib/wishlistContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ProductInfo({ product }) {
   const { addToCart } = useCart();
+  const { format } = useCurrency();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -59,10 +61,10 @@ export default function ProductInfo({ product }) {
 
       {/* Price */}
       <div className="flex items-baseline gap-3">
-        <span className="text-4xl font-bold text-foreground">{product.price.toLocaleString()} SAR</span>
+        <span className="text-4xl font-bold text-foreground">{format(product.price)}</span>
         {product.oldPrice && (
           <>
-            <span className="text-lg text-muted-foreground line-through">{product.oldPrice.toLocaleString()} SAR</span>
+            <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
             <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-sm font-bold">
               -{discount}%
             </span>

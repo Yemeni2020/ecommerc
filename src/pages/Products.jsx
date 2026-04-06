@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Heart, ShoppingCart, GitCompare, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,13 @@ import { PRODUCTS_DB } from "@/lib/productData";
 import { useWishlist } from "@/lib/wishlistContext";
 import { useCart } from "@/lib/cartContext";
 import { useCompare } from "@/lib/compareContext";
+import { useCurrency } from "@/lib/currencyContext";
 import Navbar from "../components/home/Navbar";
 import Footer from "../components/home/Footer";
-import CompareBar from "../components/product/CompareBar";
-import CompareDrawer from "../components/product/CompareDrawer";
 import BottomNavbar from "../components/home/BottomNavbar";
+import CartDrawer from "../components/product/CartDrawer";
+import CompareBar from "../components/product/CompareBar";
+import ProductSidebar from "../components/product/ProductSidebar";
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
@@ -21,43 +23,47 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
 ];
 
-const CATEGORIES = ["All", "Interior", "Exterior", "Performance", "Technology"];
-const PRICE_RANGES = [
-  { label: "All Prices", min: 0, max: Infinity },
-  { label: "Under 500 SAR", min: 0, max: 500 },
-  { label: "500 – 1,000 SAR", min: 500, max: 1000 },
-  { label: "1,000 – 5,000 SAR", min: 1000, max: 5000 },
-  { label: "Over 5,000 SAR", min: 5000, max: Infinity },
-];
-const RATINGS = [
-  { label: "All Ratings", min: 0 },
-  { label: "4.5+ Stars", min: 4.5 },
-  { label: "4.0+ Stars", min: 4.0 },
-  { label: "3.5+ Stars", min: 3.5 },
-];
+const DEFAULT_FILTERS = {
+  category: "All",
+  brand: "All Brands",
+  rating: 0,
+  priceMin: 0,
+  priceMax: 99999,
+  inStock: false,
+  onSale: false,
+};
 
 export default function Products() {
   const { toggleWishlist, isWishlisted } = useWishlist();
-  const { addToCart } = useCart();
+  const { addToCart, totalItems } = useCart();
   const { toggleCompare, isInCompare } = useCompare();
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
+  const { format } = useCurrency();
+  const navigate = useNavigate();
 
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedPrice, setSelectedPrice] = useState(0);
-  const [selectedRating, setSelectedRating] = useState(0);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState("featured");
-  const [inStockOnly, setInStockOnly] = useState(false);
-  const [onSaleOnly, setOnSaleOnly] = useState(false);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+  const activeCount = [
+    filters.category !== "All",
+    filters.brand !== "All Brands",
+    filters.rating > 0,
+    filters.priceMin > 0 || filters.priceMax < 99999,
+    filters.inStock,
+    filters.onSale,
+  ].filter(Boolean).length;
+
+  const resetFilters = () => setFilters(DEFAULT_FILTERS);
 
   const filtered = useMemo(() => {
     let list = [...PRODUCTS_DB];
-    if (selectedCategory !== "All") list = list.filter((p) => p.category === selectedCategory);
-    const priceRange = PRICE_RANGES[selectedPrice];
-    list = list.filter((p) => p.price >= priceRange.min && p.price <= priceRange.max);
-    list = list.filter((p) => p.rating >= RATINGS[selectedRating].min);
-    if (inStockOnly) list = list.filter((p) => p.inStock);
-    if (onSaleOnly) list = list.filter((p) => p.oldPrice);
+    if (filters.category !== "All") list = list.filter((p) => p.category === filters.category);
+    list = list.filter((p) => p.price >= filters.priceMin && p.price <= filters.priceMax);
+    list = list.filter((p) => p.rating >= filters.rating);
+    if (filters.inStock) list = list.filter((p) => p.inStock);
+    if (filters.onSale) list = list.filter((p) => p.oldPrice);
+    // brand filter is cosmetic since PRODUCTS_DB doesn't have a brand field — skip silently
 
     switch (sortBy) {
       case "price_asc": return list.sort((a, b) => a.price - b.price);
@@ -65,152 +71,117 @@ export default function Products() {
       case "rating": return list.sort((a, b) => b.rating - a.rating);
       default: return list;
     }
-  }, [selectedCategory, selectedPrice, selectedRating, sortBy, inStockOnly, onSaleOnly]);
-
-  const activeFiltersCount = (selectedCategory !== "All" ? 1 : 0) + (selectedPrice !== 0 ? 1 : 0) + (selectedRating !== 0 ? 1 : 0) + (inStockOnly ? 1 : 0) + (onSaleOnly ? 1 : 0);
-
-  const resetFilters = () => {
-    setSelectedCategory("All"); setSelectedPrice(0); setSelectedRating(0); setInStockOnly(false); setOnSaleOnly(false);
-  };
+  }, [filters, sortBy]);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar />
-      <CompareDrawer open={compareOpen} onClose={() => setCompareOpen(false)} />
-      <BottomNavbar />
+      <Navbar onCartClick={() => setCartOpen(true)} cartCount={totalItems} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <BottomNavbar onCartClick={() => setCartOpen(true)} onSearchClick={() => {}} />
 
       <main className="pt-24 pb-32 md:pb-16">
         {/* Page Header */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-          <div className="flex items-end justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
               <nav className="text-xs text-muted-foreground mb-2">
                 <Link to="/" className="hover:text-primary">Home</Link> / <span className="text-foreground">All Products</span>
               </nav>
               <h1 className="font-display text-3xl md:text-4xl font-bold">All Products</h1>
-              <p className="text-muted-foreground text-sm mt-1">{filtered.length} product{filtered.length !== 1 ? "s" : ""} found</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                {filtered.length} product{filtered.length !== 1 ? "s" : ""} found
+                {activeCount > 0 && <span className="ml-1 text-primary">· {activeCount} filter{activeCount !== 1 ? "s" : ""} active</span>}
+              </p>
             </div>
-            {/* Sort */}
-            <div className="hidden md:flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort by:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="bg-card border border-border/50 rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
-              >
-                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+            <div className="flex items-center gap-2">
+              {/* Sort — desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-card border border-border/50 rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
+                >
+                  {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-8">
-          {/* Sidebar Filters — Desktop */}
-          <aside className="hidden md:block w-56 flex-shrink-0">
-            <div className="sticky top-24 space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm">Filters</h3>
-                {activeFiltersCount > 0 && (
-                  <button onClick={resetFilters} className="text-xs text-primary hover:underline">Reset ({activeFiltersCount})</button>
-                )}
-              </div>
-
-              {/* Category */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Category</p>
-                <div className="space-y-2">
-                  {CATEGORIES.map((cat) => (
-                    <button key={cat} onClick={() => setSelectedCategory(cat)} className={`w-full text-left text-sm px-3 py-2 rounded-xl transition-colors ${selectedCategory === cat ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Price Range</p>
-                <div className="space-y-2">
-                  {PRICE_RANGES.map((range, i) => (
-                    <button key={i} onClick={() => setSelectedPrice(i)} className={`w-full text-left text-sm px-3 py-2 rounded-xl transition-colors ${selectedPrice === i ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-                      {range.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Rating</p>
-                <div className="space-y-2">
-                  {RATINGS.map((r, i) => (
-                    <button key={i} onClick={() => setSelectedRating(i)} className={`w-full text-left text-sm px-3 py-2 rounded-xl transition-colors ${selectedRating === i ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Toggles */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Availability</p>
-                <label className="flex items-center gap-2 cursor-pointer mb-2">
-                  <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="accent-primary w-3.5 h-3.5" />
-                  <span className="text-sm text-muted-foreground">In Stock Only</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={onSaleOnly} onChange={(e) => setOnSaleOnly(e.target.checked)} className="accent-primary w-3.5 h-3.5" />
-                  <span className="text-sm text-muted-foreground">On Sale Only</span>
-                </label>
-              </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-6">
+          {/* Sidebar — Desktop */}
+          <aside className="hidden md:block w-60 flex-shrink-0">
+            <div className="sticky top-24 bg-card border border-border/50 rounded-2xl p-4">
+              <ProductSidebar
+                filters={filters}
+                onChange={setFilters}
+                activeCount={activeCount}
+                onReset={resetFilters}
+              />
             </div>
           </aside>
 
           {/* Products Grid */}
-          <div className="flex-1">
-            {/* Mobile filter / sort bar */}
+          <div className="flex-1 min-w-0">
+            {/* Mobile controls */}
             <div className="flex md:hidden items-center gap-2 mb-4">
-              <Button variant="outline" size="sm" onClick={() => setFilterOpen(!filterOpen)} className="rounded-full border-border/50 gap-1.5 flex-1">
+              <Button variant="outline" size="sm" onClick={() => setMobileFilterOpen(!mobileFilterOpen)} className="rounded-full border-border/50 gap-1.5 flex-1">
                 <SlidersHorizontal className="w-3.5 h-3.5" />
-                Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+                Filters {activeCount > 0 && `(${activeCount})`}
               </Button>
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="flex-1 bg-card border border-border/50 rounded-full px-3 py-2 text-sm text-foreground outline-none">
                 {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
 
-            {/* Mobile filters panel */}
-            {filterOpen && (
-              <div className="md:hidden bg-card border border-border/50 rounded-2xl p-4 mb-4 space-y-4">
-                <div className="flex items-center justify-between">
+            {/* Mobile filter panel */}
+            {mobileFilterOpen && (
+              <div className="md:hidden bg-card border border-border/50 rounded-2xl p-4 mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-sm">Filters</span>
-                  <div className="flex gap-2">
-                    {activeFiltersCount > 0 && <button onClick={resetFilters} className="text-xs text-primary">Reset</button>}
-                    <button onClick={() => setFilterOpen(false)}><X className="w-4 h-4 text-muted-foreground" /></button>
-                  </div>
+                  <button onClick={() => setMobileFilterOpen(false)}>
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-2">Category</p>
-                    {CATEGORIES.map((cat) => (
-                      <button key={cat} onClick={() => setSelectedCategory(cat)} className={`block w-full text-left text-xs px-2 py-1.5 rounded-lg mb-1 ${selectedCategory === cat ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary"}`}>{cat}</button>
-                    ))}
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-2">Price</p>
-                    {PRICE_RANGES.map((r, i) => (
-                      <button key={i} onClick={() => setSelectedPrice(i)} className={`block w-full text-left text-xs px-2 py-1.5 rounded-lg mb-1 ${selectedPrice === i ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary"}`}>{r.label}</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground">
-                    <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="accent-primary" /> In Stock
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground">
-                    <input type="checkbox" checked={onSaleOnly} onChange={(e) => setOnSaleOnly(e.target.checked)} className="accent-primary" /> On Sale
-                  </label>
-                </div>
+                <ProductSidebar filters={filters} onChange={setFilters} activeCount={activeCount} onReset={resetFilters} />
+              </div>
+            )}
+
+            {/* Active filter chips */}
+            {activeCount > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {filters.category !== "All" && (
+                  <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">
+                    {filters.category}
+                    <button onClick={() => setFilters((f) => ({ ...f, category: "All" }))}><X className="w-3 h-3 ml-0.5" /></button>
+                  </span>
+                )}
+                {(filters.priceMin > 0 || filters.priceMax < 99999) && (
+                  <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">
+                    {filters.priceMin}–{filters.priceMax === 99999 ? "∞" : filters.priceMax} SAR
+                    <button onClick={() => setFilters((f) => ({ ...f, priceMin: 0, priceMax: 99999 }))}><X className="w-3 h-3 ml-0.5" /></button>
+                  </span>
+                )}
+                {filters.rating > 0 && (
+                  <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">
+                    {filters.rating}+ Stars
+                    <button onClick={() => setFilters((f) => ({ ...f, rating: 0 }))}><X className="w-3 h-3 ml-0.5" /></button>
+                  </span>
+                )}
+                {filters.inStock && (
+                  <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">
+                    In Stock
+                    <button onClick={() => setFilters((f) => ({ ...f, inStock: false }))}><X className="w-3 h-3 ml-0.5" /></button>
+                  </span>
+                )}
+                {filters.onSale && (
+                  <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">
+                    On Sale
+                    <button onClick={() => setFilters((f) => ({ ...f, onSale: false }))}><X className="w-3 h-3 ml-0.5" /></button>
+                  </span>
+                )}
+                <button onClick={resetFilters} className="text-xs text-muted-foreground hover:text-primary underline px-1">Clear all</button>
               </div>
             )}
 
@@ -253,8 +224,8 @@ export default function Products() {
                       </div>
                       <div className="flex items-center justify-between mt-3">
                         <div>
-                          <span className="text-sm md:text-base font-bold">{product.price.toLocaleString()} SAR</span>
-                          {product.oldPrice && <span className="text-xs text-muted-foreground line-through ml-1.5">{product.oldPrice}</span>}
+                          <span className="text-sm md:text-base font-bold">{format(product.price)}</span>
+                          {product.oldPrice && <span className="text-xs text-muted-foreground line-through ml-1.5">{format(product.oldPrice)}</span>}
                         </div>
                         <div className="flex items-center gap-1.5">
                           <button
@@ -282,7 +253,7 @@ export default function Products() {
       </main>
 
       <Footer />
-      <CompareBar onOpenCompare={() => setCompareOpen(true)} />
+      <CompareBar onOpenCompare={() => navigate("/compare")} />
     </div>
   );
 }

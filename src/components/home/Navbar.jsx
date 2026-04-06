@@ -1,25 +1,25 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Search, Menu, X, Heart } from "lucide-react";
+import { ShoppingCart, Search, Menu, X, User, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SearchOverlay from "./SearchOverlay";
 import { Link } from "react-router-dom";
-import { useCart } from "@/lib/cartContext";
 import { useWishlist } from "@/lib/wishlistContext";
-import { useUI } from "@/lib/uiContext";
-import { useState } from "react";
+import CurrencySwitcher from "./CurrencySwitcher";
+import { Gift } from "lucide-react";
 
 const navLinks = [
-  { label: "Home", href: "/" },
+  { label: "Home", href: "#" },
   { label: "Categories", href: "#categories" },
-  { label: "Products", href: "/products" },
+  { label: "Products", href: "#products" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ onCartClick, cartCount }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { wishlist } = useWishlist();
-  const { totalItems } = useCart();
-  const { openCart, openSearch } = useUI();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
@@ -38,29 +38,25 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              link.href.startsWith('#') ? (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  {link.label}
-                </Link>
-              )
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
+              >
+                {link.label}
+              </a>
             ))}
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={openSearch}>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-primary relative hidden sm:flex">
+              <Link to="/rewards">
+                <Gift className="w-5 h-5" />
+              </Link>
+            </Button>
+            <CurrencySwitcher />
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => setSearchOpen(true)}>
               <Search className="w-5 h-5" />
             </Button>
             <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-primary relative hidden sm:flex">
@@ -73,11 +69,11 @@ export default function Navbar() {
                 )}
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary relative" onClick={openCart}>
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary relative" onClick={onCartClick}>
               <ShoppingCart className="w-5 h-5" />
-              {totalItems > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {totalItems}
+                  {cartCount}
                 </span>
               )}
             </Button>
@@ -93,6 +89,8 @@ export default function Navbar() {
         </div>
       </div>
 
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
@@ -104,25 +102,14 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-3">
               {navLinks.map((link) => (
-                link.href.startsWith('#') ? (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
-                  >
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.label}
-                    to={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                )
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
+                >
+                  {link.label}
+                </a>
               ))}
             </div>
           </motion.div>

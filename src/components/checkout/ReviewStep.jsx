@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, MapPin, CreditCard, Smartphone, Clock, Package, Tag } from "lucide-react";
 import GiftCardInput from "./GiftCardInput";
 import { markPromoUsed } from "@/lib/promoStore";
+import { addPurchasePoints } from "@/lib/rewardsStore";
 import { motion } from "framer-motion";
 
 const METHOD_LABELS = {
@@ -34,6 +35,10 @@ function OrderConfirmed({ orderNumber }) {
       <p className="text-sm text-muted-foreground">
         You'll receive a confirmation SMS & email shortly.
       </p>
+      <div className="px-6 py-3 rounded-2xl bg-primary/10 border border-primary/20 w-full max-w-xs text-center">
+        <p className="text-xs text-muted-foreground">Rewards Earned</p>
+        <p className="font-bold text-primary mt-0.5 text-sm">Points added to your account 🎉</p>
+      </div>
     </motion.div>
   );
 }
@@ -56,6 +61,7 @@ export default function ReviewStep({ shipping, payment, cart, onBack, onConfirm 
   const handleConfirm = () => {
     setLoading(true);
     if (codeType === "promo" && appliedCode) markPromoUsed(appliedCode);
+    addPurchasePoints(total);
     setTimeout(() => {
       const num = "DL-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setOrderNumber(num);

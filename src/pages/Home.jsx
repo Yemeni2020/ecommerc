@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import Navbar from "../components/home/Navbar";
 import CartDrawer from "../components/product/CartDrawer";
 import BottomNavbar from "../components/home/BottomNavbar";
@@ -75,7 +75,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar cartCount={totalItems} />
+      <Navbar onCartClick={openCart} cartCount={totalItems} />
       <HeroSection heroImage={HERO_IMAGE} />
       <BrandsBar />
       <CategoryGrid categories={CATEGORIES} />
