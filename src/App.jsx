@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/cartContext';
@@ -51,23 +52,36 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/product/:productId" element={<ProductDetail />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/track" element={<OrderTracking />} />
-      <Route path="/wishlist" element={<Wishlist />} />
-      <Route path="/products" element={<Products />} />
-      <Route path="/gift-card" element={<GiftCard />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/rewards" element={<MyRewards />} />
-      <Route path="/compare" element={<ComparePage />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/categories" element={<Categories />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:productId" element={<ProductDetail />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/track" element={<OrderTracking />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/gift-card" element={<GiftCard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/rewards" element={<MyRewards />} />
+        <Route path="/compare" element={<ComparePage />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </>
   );
+};
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
 };
 
 
