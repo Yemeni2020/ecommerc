@@ -6,7 +6,7 @@ const KEY = "wishlist_counts"; // Corrected casing to KEY
 // Seed with some initial counts for demo purposes
 const SEED = {
     "carbon-phone-mount" : 487,
-    "leather-seat-cover" : 312,
+    "leather-seat-covers" : 312,
     "led-ambient-kit": 256,
     "alloy-wheel-set": 198,
 };
@@ -48,7 +48,7 @@ export function decrementCount(productId){
 };
 
 // Get the sorted product IDs by wishlist count
-export function getSortedProductsByWishCount(productIds){
+export function getSortedByCount(productIds = []){
     const counts = load();
     return productIds
         .map((id) => ({id, count: counts[id] || 0})) // Map to objects with id and count

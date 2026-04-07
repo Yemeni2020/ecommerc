@@ -15,6 +15,8 @@ import { useCart } from "@/lib/cartContext";
 import { recordView } from "../lib/browsingHistory";
 import { useEffect } from "react";
 import ChatWidget from "../components/chat/ChatWidget";
+import CustomSetBuilder from "../components/product/CustomSetBuilder";
+
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -63,6 +65,11 @@ export default function ProductDetail() {
             <ProductImageGallery images={product.images} badge={product.badge} />
             <ProductInfo product={product} />
           </div>
+        </div>
+
+        {/* Custom Set Builder */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <CustomSetBuilder currentProductId={productId} />
         </div>
 
         {/* Tabs: Specs & Reviews */}

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Package, Calendar, MapPin, ArrowLeft, Truck, Phone } from "lucide-react";
+import { Search, Package, Calendar, MapPin, ArrowLeft, Truck, Mail, Clock, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import TrackingTimeline from "../components/tracking/TrackingTimeline";
 import TrackingMap from "../components/tracking/TrackingMap";
 import { lookupOrder } from "../lib/orderTrackingData";
+import ChatWidget from "../components/chat/ChatWidget";
 
 const STATUS_LABELS = {
   ordered: "Order Placed",
@@ -26,9 +27,13 @@ const STATUS_COLORS = {
   delivered: "bg-green-500/10 text-green-400",
 };
 
+const STATUS_PROGRESS = {
+  ordered: 1, confirmed: 2, packed: 3, in_transit: 4, out_for_delivery: 5, delivered: 6,
+};
+
 export default function OrderTracking() {
   const [orderNum, setOrderNum] = useState("");
-  const [phone, setPhone] = useState("");
+  const [contact, setContact] = useState("");
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
@@ -39,20 +44,20 @@ export default function OrderTracking() {
     setError("");
     setOrder(null);
 
-    const result = lookupOrder(orderNum, phone);
+    const result = lookupOrder(orderNum, contact);
     if (result.error === "not_found") {
       setError("No order found with that number. Please check and try again.");
-    } else if (result.error === "phone_mismatch") {
-      setError("Phone number doesn't match our records for this order. Please check and try again.");
+    } else if (result.error === "mismatch") {
+      setError("Email or phone doesn't match our records for this order.");
     } else {
       setOrder(result.order);
     }
   };
 
-  const tryDemo = (num, ph) => {
-    setOrderNum(num);
-    setPhone(ph);
-  };
+  const tryDemo = (num, c) => { setOrderNum(num); setContact(c); };
+
+  const progress = order ? STATUS_PROGRESS[order.currentStatus] : 0;
+  const isDelivered = order?.currentStatus === "delivered";
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
@@ -76,7 +81,7 @@ export default function OrderTracking() {
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-bold">Track Your Order</h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Enter your order number and phone number to see real-time shipment updates.
+            Enter your order number and email (or phone) to see real-time shipment updates.
           </p>
         </div>
 
@@ -92,11 +97,11 @@ export default function OrderTracking() {
             />
           </div>
           <div className="relative">
-            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Phone number used at checkout"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Email or phone used at checkout"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
               className="pl-11 h-12 rounded-2xl bg-card border-border/50 text-sm"
             />
           </div>
@@ -108,9 +113,9 @@ export default function OrderTracking() {
         <div className="text-xs text-muted-foreground text-center mb-8 space-y-1">
           <p>Demo orders — click to prefill:</p>
           <div className="flex flex-wrap justify-center gap-3 mt-1">
-            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-ORDER1", "+966 55 000 5500")}>DL-ORDER1 (In Transit)</button>
-            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-SAMPLE", "+966 55 001 5512")}>DL-SAMPLE (Packed)</button>
-            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-DELIVERED", "+966 55 005 5599")}>DL-DELIVERED (Done)</button>
+            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-ORDER1", "ahmed@example.com")}>DL-ORDER1 (In Transit)</button>
+            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-SAMPLE", "khalid@example.com")}>DL-SAMPLE (Packed)</button>
+            <button className="text-primary hover:underline" onClick={() => tryDemo("DL-DELIVERED", "rayan@example.com")}>DL-DELIVERED (Done)</button>
           </div>
         </div>
 
@@ -148,7 +153,8 @@ export default function OrderTracking() {
                 </div>
                 <div className="text-right flex-shrink-0 hidden sm:block">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5 text-primary" /> Est. Delivery
+                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                    {isDelivered ? "Delivered On" : "Est. Delivery"}
                   </div>
                   <p className="font-bold text-sm mt-0.5">{order.estimatedDelivery}</p>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
@@ -157,10 +163,55 @@ export default function OrderTracking() {
                 </div>
               </div>
 
+              {/* ETA + Progress Bar */}
+              <div className="bg-card border border-border/50 rounded-3xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    {isDelivered
+                      ? <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      : <Clock className="w-4 h-4 text-primary" />
+                    }
+                    <h3 className="font-semibold text-sm">
+                      {isDelivered ? "Successfully Delivered" : "Estimated Arrival"}
+                    </h3>
+                  </div>
+                  <span className={`text-sm font-bold ${isDelivered ? "text-green-400" : "text-primary"}`}>
+                    {order.estimatedDelivery}
+                  </span>
+                </div>
+                {/* Step progress bar */}
+                <div className="flex items-center gap-1">
+                  {Object.keys(STATUS_LABELS).map((key, idx) => {
+                    const stepNum = idx + 1;
+                    const isComplete = stepNum <= progress;
+                    const isActive = stepNum === progress;
+                    return (
+                      <React.Fragment key={key}>
+                        <div
+                          className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                            isComplete ? "bg-primary" : "bg-secondary"
+                          }`}
+                        />
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between mt-1.5 text-[10px] text-muted-foreground">
+                  <span>Ordered</span>
+                  <span>In Transit</span>
+                  <span>Delivered</span>
+                </div>
+                {!isDelivered && (
+                  <p className="text-xs text-muted-foreground mt-3 text-center">
+                    📍 Your package is currently <span className="text-foreground font-semibold">{STATUS_LABELS[order.currentStatus]}</span>
+                  </p>
+                )}
+              </div>
+
               {/* Mobile delivery info */}
               <div className="flex gap-3 sm:hidden">
                 <div className="flex-1 bg-card border border-border/50 rounded-2xl p-4">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1"><Calendar className="w-3.5 h-3.5 text-primary" /> Est. Delivery</div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1"><Calendar className="w-3.5 h-3.5 text-primary" /> {isDelivered ? "Delivered" : "Est. Delivery"}</div>
                   <p className="font-bold text-sm">{order.estimatedDelivery}</p>
                 </div>
                 <div className="flex-1 bg-card border border-border/50 rounded-2xl p-4">
@@ -196,6 +247,7 @@ export default function OrderTracking() {
           )}
         </AnimatePresence>
       </div>
+      <ChatWidget />
     </div>
   );
 }

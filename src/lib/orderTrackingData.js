@@ -6,12 +6,19 @@ export const ORDER_PHONES = {
   "DL-DELIVERED": "5599",
 };
 
+// Email map for email-based lookup
+export const ORDER_EMAILS = {
+  "DL-ORDER1": "ahmed@example.com",
+  "DL-SAMPLE": "khalid@example.com",
+  "DL-DELIVERED": "rayan@example.com",
+};
+
 export const MOCK_ORDERS = {
   "DL-ORDER1": {
     orderNumber: "DL-ORDER1",
     estimatedDelivery: "April 8, 2026",
     product: "Carbon Fiber Phone Mount Pro",
-    image: "https://media.example.com/images/public/69c90313080b6a8a2755e1b6/bd168a385_generated_c8cb9b12.png",
+    image: "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/bd168a385_generated_c8cb9b12.png",
     destination: { name: "Riyadh", lat: 24.7136, lng: 46.6753 },
     currentStatus: "in_transit",
     steps: [
@@ -33,7 +40,7 @@ export const MOCK_ORDERS = {
     orderNumber: "DL-SAMPLE",
     estimatedDelivery: "April 9, 2026",
     product: "Premium Leather Seat Covers",
-    image: "https://media.example.com/images/public/69c90313080b6a8a2755e1b6/46de2be99_generated_2d8b6ffd.png",
+    image: "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/46de2be99_generated_2d8b6ffd.png",
     destination: { name: "Dammam", lat: 26.4207, lng: 50.0888 },
     currentStatus: "packed",
     steps: [
@@ -54,7 +61,7 @@ export const MOCK_ORDERS = {
     orderNumber: "DL-DELIVERED",
     estimatedDelivery: "Apr 3, 2026",
     product: "Forged Alloy Wheel Set",
-    image: "https://media.example.com/images/public/69c90313080b6a8a2755e1b6/b0854fd7f_generated_85a434f3.png",
+    image: "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/b0854fd7f_generated_85a434f3.png",
     destination: { name: "Jeddah", lat: 21.4858, lng: 39.1925 },
     currentStatus: "delivered",
     steps: [
@@ -73,16 +80,23 @@ export const MOCK_ORDERS = {
   },
 };
 
-export function lookupOrder(orderNumber, phone) {
+export function lookupOrder(orderNumber, emailOrPhone) {
   const key = orderNumber.trim().toUpperCase();
   const order = MOCK_ORDERS[key];
   if (!order) return { error: "not_found" };
 
-  // If phone provided, verify last 4 digits
-  if (phone) {
-    const digits = phone.replace(/\D/g, "").slice(-4);
-    const expected = ORDER_PHONES[key];
-    if (expected && digits !== expected) return { error: "phone_mismatch" };
+  if (emailOrPhone) {
+    const input = emailOrPhone.trim().toLowerCase();
+    // Email check
+    if (input.includes("@")) {
+      const expected = ORDER_EMAILS[key];
+      if (expected && input !== expected) return { error: "mismatch" };
+    } else {
+      // Phone check — last 4 digits
+      const digits = input.replace(/\D/g, "").slice(-4);
+      const expected = ORDER_PHONES[key];
+      if (expected && digits !== expected) return { error: "mismatch" };
+    }
   }
 
   return { order };

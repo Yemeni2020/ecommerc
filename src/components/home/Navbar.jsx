@@ -9,11 +9,11 @@ import CurrencySwitcher from "./CurrencySwitcher";
 import { Gift } from "lucide-react";
 
 const navLinks = [
-  { label: "Home", href: "#" },
-  { label: "Categories", href: "#categories" },
-  { label: "Products", href: "#products" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/" },
+  { label: "Categories", href: "/categories" },
+  { label: "Products", href: "/products" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function Navbar({ onCartClick, cartCount }) {

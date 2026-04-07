@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../components/home/Navbar";
 import CartDrawer from "../components/product/CartDrawer";
 import BottomNavbar from "../components/home/BottomNavbar";
 import SearchOverlay from "../components/home/SearchOverlay";
 import { useCart } from "@/lib/cartContext";
-import { useUI } from "@/lib/uiContext";
 import HeroSection from "../components/home/HeroSection";
 import CategoryGrid from "../components/home/CategoryGrid";
 import FeaturedProducts from "../components/home/FeaturedProducts";
@@ -13,8 +12,11 @@ import WhyChooseUs from "../components/home/WhyChooseUs";
 import Newsletter from "../components/home/Newsletter";
 import Footer from "../components/home/Footer";
 import RecommendedSection from "../components/home/RecommendedSection";
+import WishlistTrends from "../components/home/WishlistTrends";
 import NewsletterPopup from "../components/home/NewsletterPopup";
 import ChatWidget from "../components/chat/ChatWidget";
+import WishlistNotifier from "../components/notifications/WishlistNotifier";
+
 
 const HERO_IMAGE = "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/c651a0491_generated_c10d0264.png";
 
@@ -70,25 +72,28 @@ const PRODUCTS = [
 ];
 
 export default function Home() {
+  const [cartOpen, setCartOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { totalItems } = useCart();
-  const { cartOpen, searchOpen, openCart, closeCart, openSearch, closeSearch } = useUI();
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <Navbar onCartClick={openCart} cartCount={totalItems} />
+      <Navbar onCartClick={() => setCartOpen(true)} cartCount={totalItems} onSearchOpen={() => setSearchOpen(true)} />
       <HeroSection heroImage={HERO_IMAGE} />
       <BrandsBar />
       <CategoryGrid categories={CATEGORIES} />
       <FeaturedProducts products={PRODUCTS} />
+      <WishlistTrends />
       <RecommendedSection />
       <WhyChooseUs />
       <Newsletter />
       <Footer />
-      <CartDrawer open={cartOpen} onClose={closeCart} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       <NewsletterPopup />
       <ChatWidget />
-      <SearchOverlay open={searchOpen} onClose={closeSearch} />
-      <BottomNavbar onCartClick={openCart} onSearchClick={openSearch} />
+      <WishlistNotifier />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <BottomNavbar onCartClick={() => setCartOpen(true)} onSearchClick={() => setSearchOpen(true)} />
     </div>
   );
-} 
+}

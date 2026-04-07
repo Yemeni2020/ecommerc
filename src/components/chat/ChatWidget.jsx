@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, ChevronDown } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, ChevronDown, Phone, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const QUICK_REPLIES = [
   "What's your shipping policy?",
@@ -11,41 +12,54 @@ const QUICK_REPLIES = [
 ];
 
 const AUTO_RESPONSES = {
-  "shipping": {
+  shipping: {
     keywords: ["ship", "delivery", "deliver", "free shipping", "shipping policy"],
-    reply: "🚚 **Shipping Policy**\n\nWe offer **free shipping** on all orders across Saudi Arabia (KSA). Standard delivery takes 2–5 business days depending on your city. Express 1-day delivery is available in Riyadh and Jeddah for orders placed before 2 PM.",
+    reply: "🚚 **Shipping Policy**\n\nWe offer **free shipping** on all orders across Saudi Arabia (KSA). Standard delivery takes 2–5 business days. Express 1-day delivery is available in Riyadh and Jeddah for orders placed before 2 PM.",
   },
-  "return": {
+  return: {
     keywords: ["return", "refund", "exchange", "send back", "wrong item"],
-    reply: "🔄 **Returns & Refunds**\n\nWe accept returns within **14 days** of delivery. Items must be unused and in original packaging. To initiate a return:\n1. Email us at returns@driveluxe.sa\n2. Include your order number\n3. We'll arrange a free pickup\n\nRefunds are processed within 3–5 business days.",
+    reply: "🔄 **Returns & Refunds**\n\nWe accept returns within **14 days** of delivery. Items must be unused and in original packaging.\n\n1. Email returns@driveluxe.sa\n2. Include your order number\n3. We'll arrange a free pickup\n\nRefunds are processed within 3–5 business days.",
   },
-  "order": {
+  order: {
     keywords: ["order", "track", "where is", "status", "tracking"],
-    reply: "📦 **Track Your Order**\n\nYou can track your order on our **Track Order** page. Enter your order number (e.g. DL-XXXXX) to see real-time updates.\n\nIf you need further help, please share your order number and I'll look into it for you!",
+    reply: "📦 **Track Your Order**\n\nYou can track your order on the **Track Order** page using your order number + email.\n\nLink: [Track Order →](/track)",
+    action: { label: "Track Order →", to: "/track" },
   },
-  "warranty": {
+  warranty: {
     keywords: ["warranty", "guarantee", "defect", "broken", "damaged"],
-    reply: "🛡️ **Warranty Policy**\n\nAll products come with a **manufacturer's warranty**:\n- Most accessories: 2 years\n- LED & electronic products: 1 year\n- Wheels & performance parts: 3 years\n\nFor warranty claims, contact us with your order number and photos of the issue.",
+    reply: "🛡️ **Warranty Policy**\n\nAll products include a manufacturer's warranty:\n- Accessories: **2 years**\n- LED & electronics: **1 year**\n- Wheels & performance: **3 years**\n\nFor claims, email us with your order number and photos.",
   },
-  "promo": {
+  promo: {
     keywords: ["promo", "code", "discount", "coupon", "gift card", "voucher"],
-    reply: "🎁 **Promo & Gift Card Codes**\n\nTo apply a code:\n1. Add items to your cart\n2. Proceed to checkout\n3. Enter your code in the **\"Gift Card or Promo Code\"** field in the Review step\n\nCodes are applied automatically and deducted from your total before VAT.",
+    reply: "🎁 **Promo & Gift Card Codes**\n\n1. Add items to your cart\n2. Go to Checkout\n3. Enter code in the **Gift Card or Promo Code** field at the Review step\n\nCodes are automatically deducted from your total before VAT.",
+  },
+  payment: {
+    keywords: ["pay", "payment", "tabby", "tamara", "installment", "card", "credit"],
+    reply: "💳 **Payment Options**\n\nWe accept:\n- **Credit / Debit Cards** (Visa, Mastercard)\n- **Tabby** — Pay in 4 interest-free installments\n- **Tamara** — Pay in 3 installments\n\nAll payments are secured with SSL encryption.",
+  },
+  hours: {
+    keywords: ["hours", "open", "working", "available", "when", "contact", "support"],
+    reply: "🕐 **Support Hours**\n\nOur team is available **9 AM – 9 PM (Saudi time)**, 7 days a week.\n\n📞 Call: **+966 50 000 0000**\n📧 Email: **info@driveluxe.sa**",
   },
 };
 
 function getAutoResponse(message) {
   const lower = message.toLowerCase();
   for (const key of Object.keys(AUTO_RESPONSES)) {
-    const { keywords, reply } = AUTO_RESPONSES[key];
-    if (keywords.some((kw) => lower.includes(kw))) return reply;
+    const { keywords, reply, action } = AUTO_RESPONSES[key];
+    if (keywords.some((kw) => lower.includes(kw))) return { reply, action };
   }
-  return "Thank you for your message! 😊 A member of our support team will get back to you within a few hours. Our working hours are **9 AM – 9 PM (Saudi time)**, 7 days a week.\n\nFor urgent inquiries, call us at **+966 50 000 0000**.";
+  return {
+    reply: "Thank you for your message! 😊 A support agent will get back to you within a few hours.\n\nWorking hours: **9 AM – 9 PM (Saudi time)**, 7 days a week.\n\n📞 Urgent? Call **+966 50 000 0000**",
+  };
 }
 
 function MessageBubble({ msg }) {
   const isBot = msg.role === "bot";
-  // Simple markdown: **bold**
-  const formatted = msg.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>");
+  const formatted = msg.text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "") // strip markdown links (handled via action)
+    .replace(/\n/g, "<br/>");
   return (
     <div className={`flex gap-2 ${isBot ? "justify-start" : "justify-end"}`}>
       {isBot && (
@@ -53,14 +67,25 @@ function MessageBubble({ msg }) {
           <Bot className="w-4 h-4 text-primary" />
         </div>
       )}
-      <div
-        className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
-          isBot
-            ? "bg-secondary/80 text-foreground rounded-tl-sm"
-            : "bg-primary text-primary-foreground rounded-tr-sm"
-        }`}
-        dangerouslySetInnerHTML={{ __html: formatted }}
-      />
+      <div className={`max-w-[80%] flex flex-col gap-2`}>
+        <div
+          className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
+            isBot
+              ? "bg-secondary/80 text-foreground rounded-tl-sm"
+              : "bg-primary text-primary-foreground rounded-tr-sm"
+          }`}
+          dangerouslySetInnerHTML={{ __html: formatted }}
+        />
+        {msg.action && (
+          <Link
+            to={msg.action.to}
+            className="self-start flex items-center gap-1.5 text-xs bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-3 py-1.5 rounded-full transition-colors font-semibold"
+          >
+            <ExternalLink className="w-3 h-3" />
+            {msg.action.label}
+          </Link>
+        )}
+      </div>
       {!isBot && (
         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
           <User className="w-4 h-4 text-muted-foreground" />
@@ -73,7 +98,11 @@ function MessageBubble({ msg }) {
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, role: "bot", text: "👋 Hi! Welcome to **DriveLuxe** support.\n\nHow can I help you today? You can ask me about shipping, returns, your order status, or anything else!" },
+    {
+      id: 1,
+      role: "bot",
+      text: "👋 Hi! Welcome to **DriveLuxe** live support.\n\nHow can I help you today? Ask me about shipping, returns, your order status, or anything else!",
+    },
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -87,6 +116,14 @@ export default function ChatWidget() {
     }
   }, [open, messages]);
 
+  // Proactive greeting after 15s if chat is still closed
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!open) setUnread((n) => n + 1);
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const sendMessage = (text) => {
     if (!text.trim()) return;
     const userMsg = { id: Date.now(), role: "user", text: text.trim() };
@@ -95,11 +132,11 @@ export default function ChatWidget() {
     setTyping(true);
 
     setTimeout(() => {
-      const reply = getAutoResponse(text);
-      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "bot", text: reply }]);
+      const { reply, action } = getAutoResponse(text);
+      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "bot", text: reply, action }]);
       setTyping(false);
       if (!open) setUnread((n) => n + 1);
-    }, 900 + Math.random() * 600);
+    }, 800 + Math.random() * 700);
   };
 
   return (
@@ -133,7 +170,7 @@ export default function ChatWidget() {
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ type: "spring", damping: 24, stiffness: 260 }}
             className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm bg-card border border-border/50 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
-            style={{ height: "480px" }}
+            style={{ height: "500px" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3.5 bg-primary/5 border-b border-border/50 flex-shrink-0">
@@ -149,9 +186,21 @@ export default function ChatWidget() {
                   <p className="text-xs text-green-400">Online · Replies instantly</p>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronDown className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <a
+                  href="tel:+966500000000"
+                  className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                  title="Call support"
+                >
+                  <Phone className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
@@ -164,7 +213,11 @@ export default function ChatWidget() {
                   </div>
                   <div className="bg-secondary/80 px-3.5 py-2.5 rounded-2xl rounded-tl-sm flex gap-1 items-center h-9">
                     {[0, 1, 2].map((i) => (
-                      <span key={i} className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                      <span
+                        key={i}
+                        className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                      />
                     ))}
                   </div>
                 </div>
@@ -173,7 +226,7 @@ export default function ChatWidget() {
             </div>
 
             {/* Quick Replies */}
-            <div className="px-3 pb-2 flex gap-1.5 overflow-x-auto flex-shrink-0">
+            <div className="px-3 pb-2 flex gap-1.5 overflow-x-auto flex-shrink-0 scrollbar-hide">
               {QUICK_REPLIES.map((q) => (
                 <button
                   key={q}
@@ -203,6 +256,9 @@ export default function ChatWidget() {
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </div>
+              <p className="text-[10px] text-muted-foreground text-center mt-2">
+                Powered by DriveLuxe AI · 9AM–9PM support
+              </p>
             </div>
           </motion.div>
         )}

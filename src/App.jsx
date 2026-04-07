@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -20,6 +21,9 @@ import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 import OrderTracking from './pages/OrderTracking';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Categories from './pages/Categories';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -58,6 +62,9 @@ const AuthenticatedApp = () => {
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/rewards" element={<MyRewards />} />
       <Route path="/compare" element={<ComparePage />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/categories" element={<Categories />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -78,6 +85,7 @@ function App() {
               <AuthenticatedApp />
             </Router>
             <Toaster />
+            <SonnerToaster />
           </QueryClientProvider>
         </UIProvider>
       </CartProvider>
