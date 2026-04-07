@@ -26,7 +26,7 @@ export default function Navbar({ onCartClick, cartCount }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2">
+          <a href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">D</span>
             </div>
@@ -38,13 +38,13 @@ export default function Navbar({ onCartClick, cartCount }) {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -102,14 +102,14 @@ export default function Navbar({ onCartClick, cartCount }) {
           >
             <div className="px-4 py-4 space-y-3">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.label}
-                  href={link.href}
+                  to={link.href}
                   onClick={() => setMobileOpen(false)}
                   className="block text-sm font-medium text-muted-foreground hover:text-primary py-2 transition-colors"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           </motion.div>

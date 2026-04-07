@@ -81,7 +81,13 @@ function App() {
       <CartProvider>
         <UIProvider>
           <QueryClientProvider client={queryClientInstance}>
-            <Router basename={import.meta.env.BASE_URL}>
+            <Router 
+              basename={import.meta.env.BASE_URL}
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <AuthenticatedApp />
             </Router>
             <Toaster />
