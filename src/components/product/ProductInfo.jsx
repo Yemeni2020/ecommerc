@@ -127,7 +127,8 @@ export default function ProductInfo({ product }) {
                 exit={{ opacity: 0, y: -10 }}
                 className="flex items-center gap-2"
               >
-                <ShoppingCart className="w-4 h-4" /> Add to Cart
+                <ShoppingCart className="w-4 h-4 " /> 
+                 <span className="hidden sm:inline">Add to Cart</span>
               </motion.span>
             )}
           </AnimatePresence>

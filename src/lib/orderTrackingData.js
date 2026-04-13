@@ -18,7 +18,7 @@ export const MOCK_ORDERS = {
     orderNumber: "DL-ORDER1",
     estimatedDelivery: "April 8, 2026",
     product: "Carbon Fiber Phone Mount Pro",
-    image: "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/bd168a385_generated_c8cb9b12.png",
+    image: "././imgs/holder.png",
     destination: { name: "Riyadh", lat: 24.7136, lng: 46.6753 },
     currentStatus: "in_transit",
     steps: [
@@ -40,7 +40,7 @@ export const MOCK_ORDERS = {
     orderNumber: "DL-SAMPLE",
     estimatedDelivery: "April 9, 2026",
     product: "Premium Leather Seat Covers",
-    image: "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/46de2be99_generated_2d8b6ffd.png",
+    image: "././imgs/seats.png",
     destination: { name: "Dammam", lat: 26.4207, lng: 50.0888 },
     currentStatus: "packed",
     steps: [
@@ -61,7 +61,7 @@ export const MOCK_ORDERS = {
     orderNumber: "DL-DELIVERED",
     estimatedDelivery: "Apr 3, 2026",
     product: "Forged Alloy Wheel Set",
-    image: "https://media.base44.com/images/public/69c90313080b6a8a2755e1b6/b0854fd7f_generated_85a434f3.png",
+    image: "././imgs/wheels.png",
     destination: { name: "Jeddah", lat: 21.4858, lng: 39.1925 },
     currentStatus: "delivered",
     steps: [
